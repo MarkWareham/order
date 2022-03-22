@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Order Summary</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/ui/1.13.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.1/themes/smoothness/jquery-ui.css" />
+</head>
+
+<body>
+    
+    <h2>Order Summary</h2>
+
+    <p>You've ordered:</p>
+    <div>
+        <ul id="lineItems">
+
+        </ul>
+        <div id="total"></div>
+    </div>
+
+    <button id="buyButton" type="button">Buy Now</button>
+
+    <div id="paymentDialog" title="Payment">
+        <p>Please enter your card details</p>
+        <form id="paymentForm" method="post" action="processPaymentBackendUrl">
+
+            <label for="cardNumber">Card Number:</label>
+            <input type="password" name="cardNumber" maxlength="16" />
+            
+            <label for="expiry">Expiry:</label>
+            <input type="text" name="expiry" maxlength="5" placeholder="MM/YY" />
+            
+            <label for="cvc">CVC:</label>
+            <input type="number" name="cvc" maxlength="3" />
+            
+            <p id="result"></p>
+            
+            <input type="submit" value="Pay">
+        </form>
+    </div>
+
+    <script>
+        $.getJSON("summary.json", function (data) {
+            var items = [];
+            var totalPrice = 0;
+            $.each(data, function (name, price) {
+                items.push("<li>" + name + " - £" + price + "</li>");
+                totalPrice = totalPrice + price;
+            });
+            $("#lineItems").html(items);
+            $("#total").html("£" + totalPrice)
+        });
+        $("#paymentDialog").dialog({
+            autoOpen: false
+        });
+        $('#buyButton').click(function () {
+            $('#paymentDialog').dialog('open');
+            return false;
+        });
+        $("#paymentForm").submit(function (event) {
+            event.preventDefault();
+            var destination = $(this).attr('action');
+
+            var formData = $(this).serialize();
+            var formSubmission = $.post(destination, formData);
+
+            formSubmission.done(function (data) {
+                $('#result').text('Thank your for your payment');
+            });
+            formSubmission.fail(function () {
+                $('#result').text('Sorry, we were unable to process your payment');
+            });
+        });
+    </script>
+</body>
+
+</html>
